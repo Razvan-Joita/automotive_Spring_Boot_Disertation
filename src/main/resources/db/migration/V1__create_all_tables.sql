@@ -1,0 +1,174 @@
+-- V1__create_all_tables.sql
+
+DROP TABLE IF EXISTS service_record_parts;
+DROP TABLE IF EXISTS invoice;
+DROP TABLE IF EXISTS appointment;
+DROP TABLE IF EXISTS warranty;
+DROP TABLE IF EXISTS service_record;
+DROP TABLE IF EXISTS part;
+DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS dealership;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS vehicle;
+DROP TABLE IF EXISTS manufacturer;
+DROP TABLE IF EXISTS customer;
+
+-- 1. MANUFACTURER TABLE
+CREATE TABLE manufacturer (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    country VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 2. CUSTOMER TABLE
+CREATE TABLE customer (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 3. VEHICLE TABLE
+CREATE TABLE vehicle (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    vin VARCHAR(17) UNIQUE NOT NULL,
+    license_plate VARCHAR(20) UNIQUE NOT NULL,
+    make VARCHAR(50) NOT NULL,
+    model VARCHAR(50) NOT NULL,
+    year INT NOT NULL,
+    fuel_type VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    current_odometer INT,
+    manufacturer_id BIGINT,
+    customer_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (manufacturer_id) REFERENCES manufacturer(id) ON DELETE SET NULL,
+    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE SET NULL
+);
+
+-- 4. DEALERSHIP TABLE
+CREATE TABLE dealership (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    location VARCHAR(150),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 5. EMPLOYEE TABLE
+CREATE TABLE employee (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    role VARCHAR(50),
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    dealership_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (dealership_id) REFERENCES dealership(id) ON DELETE SET NULL
+);
+
+-- 6. PART TABLE
+CREATE TABLE part (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    part_number VARCHAR(50) UNIQUE,
+    description TEXT,
+    price DECIMAL(10,2),
+    quantity INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 7. SERVICE_RECORD TABLE
+CREATE TABLE service_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    description TEXT,
+    date DATE NOT NULL,
+    vehicle_id BIGINT,
+    mechanic_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id) ON DELETE CASCADE,
+    FOREIGN KEY (mechanic_id) REFERENCES employee(id) ON DELETE SET NULL
+);
+
+-- 8. SERVICE_RECORD_PARTS (Many-to-Many)
+CREATE TABLE service_record_parts (
+    service_record_id BIGINT NOT NULL,
+    part_id BIGINT NOT NULL,
+    quantity INT DEFAULT 1,
+    PRIMARY KEY (service_record_id, part_id),
+    FOREIGN KEY (service_record_id) REFERENCES service_record(id) ON DELETE CASCADE,
+    FOREIGN KEY (part_id) REFERENCES part(id) ON DELETE CASCADE
+);
+
+-- 9. USERS TABLE
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    email VARCHAR(100),
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 10. WARRANTY TABLE
+CREATE TABLE warranty (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    vehicle_id BIGINT UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id) ON DELETE CASCADE
+);
+
+-- 11. APPOINTMENT TABLE
+CREATE TABLE appointment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    date DATETIME NOT NULL,
+    vehicle_id BIGINT,
+    customer_id BIGINT,
+    status VARCHAR(20) DEFAULT 'SCHEDULED',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
+);
+
+-- 12. INVOICE TABLE
+CREATE TABLE invoice (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    amount DECIMAL(10,2),
+    service_record_id BIGINT UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (service_record_id) REFERENCES service_record(id) ON DELETE SET NULL
+);
+
+-- Insert default admin user
+INSERT INTO users (username, password, role, email, enabled) VALUES
+('admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_ADMIN', 'admin@automotive.com', TRUE);
+
+-- Insert sample manufacturers
+INSERT INTO manufacturer (name, country) VALUES
+('Toyota', 'Japan'),
+('Honda', 'Japan'),
+('Ford', 'USA'),
+('BMW', 'Germany');
+
+-- Insert sample vehicles
+INSERT INTO vehicle (vin, license_plate, make, model, year, fuel_type, status, current_odometer, manufacturer_id) VALUES
+('1HGCM82633A123456', 'B-123-ABC', 'Toyota', 'Camry', 2023, 'Gasoline', 'ACTIVE', 15000, 1),
+('2HGCM82633A123457', 'B-456-DEF', 'Honda', 'Civic', 2024, 'Gasoline', 'ACTIVE', 5000, 2);
