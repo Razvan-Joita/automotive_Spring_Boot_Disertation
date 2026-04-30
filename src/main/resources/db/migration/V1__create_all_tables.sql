@@ -1,5 +1,3 @@
--- V1__create_all_tables.sql
-
 DROP TABLE IF EXISTS service_record_parts;
 DROP TABLE IF EXISTS invoice;
 DROP TABLE IF EXISTS appointment;
@@ -13,7 +11,6 @@ DROP TABLE IF EXISTS vehicle;
 DROP TABLE IF EXISTS manufacturer;
 DROP TABLE IF EXISTS customer;
 
--- 1. MANUFACTURER TABLE
 CREATE TABLE manufacturer (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -22,7 +19,6 @@ CREATE TABLE manufacturer (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 2. CUSTOMER TABLE
 CREATE TABLE customer (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(100) NOT NULL,
@@ -33,7 +29,6 @@ CREATE TABLE customer (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 3. VEHICLE TABLE
 CREATE TABLE vehicle (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     vin VARCHAR(17) UNIQUE NOT NULL,
@@ -52,7 +47,6 @@ CREATE TABLE vehicle (
     FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE SET NULL
 );
 
--- 4. DEALERSHIP TABLE
 CREATE TABLE dealership (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -63,7 +57,6 @@ CREATE TABLE dealership (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 5. EMPLOYEE TABLE
 CREATE TABLE employee (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -76,7 +69,6 @@ CREATE TABLE employee (
     FOREIGN KEY (dealership_id) REFERENCES dealership(id) ON DELETE SET NULL
 );
 
--- 6. PART TABLE
 CREATE TABLE part (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -88,7 +80,6 @@ CREATE TABLE part (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 7. SERVICE_RECORD TABLE
 CREATE TABLE service_record (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     description TEXT,
@@ -101,7 +92,6 @@ CREATE TABLE service_record (
     FOREIGN KEY (mechanic_id) REFERENCES employee(id) ON DELETE SET NULL
 );
 
--- 8. SERVICE_RECORD_PARTS (Many-to-Many)
 CREATE TABLE service_record_parts (
     service_record_id BIGINT NOT NULL,
     part_id BIGINT NOT NULL,
@@ -111,7 +101,6 @@ CREATE TABLE service_record_parts (
     FOREIGN KEY (part_id) REFERENCES part(id) ON DELETE CASCADE
 );
 
--- 9. USERS TABLE
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -123,7 +112,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 10. WARRANTY TABLE
 CREATE TABLE warranty (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     start_date DATE NOT NULL,
@@ -134,7 +122,6 @@ CREATE TABLE warranty (
     FOREIGN KEY (vehicle_id) REFERENCES vehicle(id) ON DELETE CASCADE
 );
 
--- 11. APPOINTMENT TABLE
 CREATE TABLE appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     date DATETIME NOT NULL,
@@ -147,7 +134,6 @@ CREATE TABLE appointment (
     FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
 );
 
--- 12. INVOICE TABLE
 CREATE TABLE invoice (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     amount DECIMAL(10,2),
@@ -157,18 +143,15 @@ CREATE TABLE invoice (
     FOREIGN KEY (service_record_id) REFERENCES service_record(id) ON DELETE SET NULL
 );
 
--- Insert default admin user
 INSERT INTO users (username, password, role, email, enabled) VALUES
 ('admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_ADMIN', 'admin@automotive.com', TRUE);
 
--- Insert sample manufacturers
 INSERT INTO manufacturer (name, country) VALUES
 ('Toyota', 'Japan'),
 ('Honda', 'Japan'),
 ('Ford', 'USA'),
 ('BMW', 'Germany');
 
--- Insert sample vehicles
 INSERT INTO vehicle (vin, license_plate, make, model, year, fuel_type, status, current_odometer, manufacturer_id) VALUES
 ('1HGCM82633A123456', 'B-123-ABC', 'Toyota', 'Camry', 2023, 'Gasoline', 'ACTIVE', 15000, 1),
 ('2HGCM82633A123457', 'B-456-DEF', 'Honda', 'Civic', 2024, 'Gasoline', 'ACTIVE', 5000, 2);

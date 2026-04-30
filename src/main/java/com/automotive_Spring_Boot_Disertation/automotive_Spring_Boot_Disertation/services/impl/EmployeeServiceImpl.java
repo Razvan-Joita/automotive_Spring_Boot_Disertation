@@ -26,7 +26,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDTO create(EmployeeDTO dto) {
         Employee entity = mapper.toEntity(dto);
 
-        // Map dealership if provided
         if (dto.getDealershipId() != null) {
             Dealership dealership = dealershipRepository.findById(dto.getDealershipId())
                     .orElseThrow(() -> new ResourceNotFoundException("Dealership not found with id: " + dto.getDealershipId()));
@@ -42,12 +41,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee entity = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
 
-        entity.setName(dto.getName());      // Use name, not firstName/lastName
-        entity.setRole(dto.getRole());      // Use role
+        entity.setName(dto.getName());
+        entity.setRole(dto.getRole());
         entity.setEmail(dto.getEmail());
         entity.setPhone(dto.getPhone());
 
-        // Update dealership if provided
         if (dto.getDealershipId() != null) {
             Dealership dealership = dealershipRepository.findById(dto.getDealershipId())
                     .orElseThrow(() -> new ResourceNotFoundException("Dealership not found with id: " + dto.getDealershipId()));

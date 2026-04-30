@@ -1,4 +1,3 @@
--- Customers
 INSERT INTO customer (first_name, last_name, email, phone) VALUES
 ('John', 'Smith', 'john.smith@email.com', '+40721234567'),
 ('Maria', 'Popescu', 'maria.popescu@email.com', '+40731234568'),
@@ -6,13 +5,11 @@ INSERT INTO customer (first_name, last_name, email, phone) VALUES
 ('Elena', 'Constantin', 'elena.constantin@email.com', '+40751234570'),
 ('Mihai', 'Georgescu', 'mihai.georgescu@email.com', '+40761234571');
 
--- Dealerships
 INSERT INTO dealership (name, location, phone, email) VALUES
 ('AutoPrime Oradea', 'Str. Republicii 12, Oradea', '+40259123456', 'contact@autoprime.ro'),
 ('StarMotors Cluj', 'Calea Turzii 88, Cluj-Napoca', '+40264123456', 'office@starmotors.ro'),
 ('EliteCars Bucuresti', 'Bd. Unirii 45, Bucuresti', '+40212345678', 'info@elitecars.ro');
 
--- Employees
 INSERT INTO employee (name, role, email, phone, dealership_id) VALUES
 ('Andrei Muresan', 'MECHANIC', 'andrei.muresan@autoprime.ro', '+40721000001', 1),
 ('Cristian Popa', 'MECHANIC', 'cristian.popa@autoprime.ro', '+40721000002', 1),
@@ -21,13 +18,11 @@ INSERT INTO employee (name, role, email, phone, dealership_id) VALUES
 ('Laura Mihai', 'SERVICE_ADVISOR', 'laura.mihai@starmotors.ro', '+40721000005', 2),
 ('Radu Florea', 'MECHANIC', 'radu.florea@elitecars.ro', '+40721000006', 3);
 
--- Additional manufacturers (Toyota, Honda, Ford, BMW already inserted in V1)
 INSERT INTO manufacturer (name, country) VALUES
 ('Mercedes-Benz', 'Germany'),
 ('Volkswagen', 'Germany'),
 ('Dacia', 'Romania');
 
--- Additional vehicles (2 already inserted in V1)
 INSERT INTO vehicle (vin, license_plate, make, model, year, fuel_type, status, current_odometer, manufacturer_id, customer_id) VALUES
 ('3VWFE21C04M000001', 'CJ-100-BMW', 'BMW', 'X5', 2022, 'Diesel', 'ACTIVE', 32000, 4, 1),
 ('WDDGF4HB2FA123456', 'B-200-MRC', 'Mercedes-Benz', 'C200', 2021, 'Gasoline', 'ACTIVE', 47000, 5, 2),
@@ -35,11 +30,9 @@ INSERT INTO vehicle (vin, license_plate, make, model, year, fuel_type, status, c
 ('UU1LSDAR5GA123456', 'BH-400-DAC', 'Dacia', 'Duster', 2023, 'Gasoline', 'ACTIVE', 12000, 7, 4),
 ('1FTFW1ET5DFA12345', 'AR-500-FRD', 'Ford', 'F-150', 2021, 'Gasoline', 'IN_SERVICE', 88000, 3, 5);
 
--- Update V1 vehicles to link to customers
 UPDATE vehicle SET customer_id = 1 WHERE vin = '1HGCM82633A123456';
 UPDATE vehicle SET customer_id = 2 WHERE vin = '2HGCM82633A123457';
 
--- Parts
 INSERT INTO part (name, part_number, description, price, quantity) VALUES
 ('Oil Filter', 'OF-1001', 'Standard oil filter for petrol engines', 45.99, 50),
 ('Air Filter', 'AF-1002', 'Engine air filter', 38.50, 40),
@@ -52,7 +45,6 @@ INSERT INTO part (name, part_number, description, price, quantity) VALUES
 ('Wiper Blades Set', 'WB-7001', 'Front wiper blades pair', 55.00, 35),
 ('Battery 70Ah', 'BA-8001', '12V 70Ah car battery', 320.00, 15);
 
--- Service Records
 INSERT INTO service_record (description, date, vehicle_id, mechanic_id) VALUES
 ('Full service - oil change, filters replacement, brake inspection', '2025-06-15', 1, 1),
 ('Brake pads replacement front and rear', '2025-07-20', 2, 2),
@@ -62,7 +54,6 @@ INSERT INTO service_record (description, date, vehicle_id, mechanic_id) VALUES
 ('Full service - oil, filters, brakes check', '2025-11-18', 6, 2),
 ('Engine diagnostic and spark plug replacement', '2026-01-08', 7, 4);
 
--- Service Record Parts (linking parts used in each service)
 INSERT INTO service_record_parts (service_record_id, part_id, quantity) VALUES
 (1, 1, 1),  -- Oil Filter
 (1, 2, 1),  -- Air Filter
@@ -81,7 +72,6 @@ INSERT INTO service_record_parts (service_record_id, part_id, quantity) VALUES
 (6, 2, 1),  -- Air Filter
 (7, 5, 1);  -- Spark Plugs
 
--- Warranties
 INSERT INTO warranty (start_date, end_date, vehicle_id) VALUES
 ('2023-01-01', '2026-01-01', 1),
 ('2024-01-01', '2027-01-01', 2),
@@ -91,7 +81,6 @@ INSERT INTO warranty (start_date, end_date, vehicle_id) VALUES
 ('2023-05-01', '2026-05-01', 6),
 ('2021-11-15', '2024-11-15', 7);
 
--- Appointments
 INSERT INTO appointment (date, vehicle_id, customer_id, status) VALUES
 ('2026-04-01 09:00:00', 1, 1, 'SCHEDULED'),
 ('2026-04-02 10:30:00', 2, 2, 'SCHEDULED'),
@@ -101,7 +90,6 @@ INSERT INTO appointment (date, vehicle_id, customer_id, status) VALUES
 ('2026-04-10 08:30:00', 6, 1, 'SCHEDULED'),
 ('2026-03-10 16:00:00', 7, 2, 'CANCELLED');
 
--- Invoices (one per service record)
 INSERT INTO invoice (amount, service_record_id) VALUES
 (285.97, 1),  -- Oil + Air Filter + Engine Oil
 (215.00, 2),  -- Front + Rear Brake Pads
@@ -111,7 +99,6 @@ INSERT INTO invoice (amount, service_record_id) VALUES
 (219.98, 6),  -- Oil Filter + Engine Oil + Air Filter
 (65.00,  7);  -- Spark Plugs
 
--- Additional users
 INSERT INTO users (username, password, role, email, enabled) VALUES
 ('mechanic1', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_MECHANIC', 'mechanic1@automotive.com', TRUE),
 ('advisor1',  '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_ADVISOR', 'advisor1@automotive.com',  TRUE);
