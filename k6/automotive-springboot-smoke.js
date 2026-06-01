@@ -1,0 +1,96 @@
+import http from 'k6/http';
+import { check, group, sleep } from 'k6';
+import { Trend, Rate } from 'k6/metrics';
+
+const BASE_URL = (__ENV.BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
+const THINK_TIME_SECONDS = Number(__ENV.THINK_TIME_SECONDS || '1');
+
+export const options = {
+  scenarios: {
+    automotive_springboot_smoke: {
+      executor: 'ramping-vus',
+      stages: [
+        { duration: __ENV.RAMP_UP || '30s', target: Number(__ENV.VUS || '10') },
+        { duration: __ENV.STEADY_STATE || '1m', target: Number(__ENV.VUS || '10') },
+        { duration: __ENV.RAMP_DOWN || '30s', target: 0 },
+      ],
+      gracefulRampDown: '15s',
+    },
+  },
+  thresholds: {
+    http_req_failed: ['rate<0.05'],
+    http_req_duration: ['p(95)<750', 'p(99)<1500'],
+    checks: ['rate>0.95'],
+  },
+  summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+};
+
+const endpoints = [
+  '/actuator/health',
+  '/api/v1/customers',
+  '/api/v1/dealerships',
+  '/api/v1/manufacturers',
+  '/api/v1/vehicles',
+  '/api/v1/employees',
+  '/api/v1/parts',
+  '/api/v1/service-records',
+  '/api/v1/appointments',
+  '/api/v1/invoices',
+  '/api/v1/warranties',
+  '/api/v1/users',
+];
+
+const apiLatency = new Trend('automotive_springboot_api_latency', true);
+const apiSuccess = new Rate('automotive_springboot_api_success');
+
+function paramsFor(path) {
+  const headers = {};
+
+  if (path === '/actuator/prometheus') {
+    headers.Accept = 'text/plain';
+  } else {
+    headers.Accept = 'application/json';
+  }
+
+  return { headers, tags: { endpoint: path } };
+}
+
+export default function () {
+  group('read automotive Spring Boot API endpoints', () => {
+    for (const endpoint of endpoints) {
+      const response = http.get(`${BASE_URL}${endpoint}`, paramsFor(endpoint));
+
+      const ok = check(response, {
+        [`${endpoint} status is 2xx`]: (r) => r.status >= 200 && r.status < 300,
+        [`${endpoint} returns content`]: (r) => r.body && r.body.length > 0,
+      });
+
+      apiLatency.add(response.timings.duration, { endpoint });
+      apiSuccess.add(ok, { endpoint });
+
+      sleep(THINK_TIME_SECONDS);
+    }
+  });
+}
+
+export function handleSummary(data) {
+  return {
+    stdout: textSummary(data),
+    '/scripts/results/automotive-springboot-summary.json': JSON.stringify(data, null, 2),
+  };
+}
+
+function textSummary(data) {
+  const p95 = data.metrics.http_req_duration?.values?.['p(95)'] || 0;
+  const failed = data.metrics.http_req_failed?.values?.rate || 0;
+  const checks = data.metrics.checks?.values?.rate || 0;
+
+  return [
+    'Automotive Spring Boot API k6 summary',
+    `Target: ${BASE_URL}`,
+    `p95 response time: ${p95.toFixed(2)} ms`,
+    `HTTP failure rate: ${(failed * 100).toFixed(2)}%`,
+    `Check pass rate: ${(checks * 100).toFixed(2)}%`,
+    '',
+  ].join('\n');
+}
